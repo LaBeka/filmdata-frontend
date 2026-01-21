@@ -43,6 +43,16 @@ export default function LoginPage() {
             // Assuming backend returns a plain JWT string
             if (response.data) {
                 localStorage.setItem("token", response.data);
+                const base64Url = response.data.split('.')[1]; // Get the payload part
+                const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+
+                const jsonPayload = decodeURIComponent(window.atob(base64).split('').map(function(c) {
+                    return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+                }).join(''));
+
+                const decoded = JSON.parse(jsonPayload);
+                localStorage.setItem("email", JSON.stringify(decoded.sub));
+                localStorage.setItem("roles", JSON.stringify(decoded.roles));
                 window.dispatchEvent(new Event("storage"));
                 router.push("/");
             }

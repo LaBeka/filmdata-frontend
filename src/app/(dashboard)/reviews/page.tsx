@@ -9,7 +9,13 @@ import { useSearchParams } from "next/navigation";
 export default function ReviewsPage() {
     const [filmId, reviews] = useState<FilmReviewResponseDto>()
     const params = useSearchParams()
-    const id = params.get("filmId")
+    const id = params.get("filmId");
+
+    const email = localStorage.getItem("email");
+    const roles = localStorage.getItem("roles");
+
+    // console.log("logged email from storage", email);
+    // console.log("logged roles from storage", roles);
 
     useEffect(() => {
         api.get(`/review/public/getByFilm/${id}`)

@@ -3,7 +3,7 @@
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {z} from "zod";
-import { userUpdateSchema, UserUpdateRequestDto } from "@/types/userSchema";
+import { userUpdateSchema, UserUpdateRequestDto, UserResponseDto } from "@/types/userSchema";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react"
 import api from "@/lib/api";
