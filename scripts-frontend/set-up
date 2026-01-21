@@ -1,0 +1,17 @@
+nodejs install locally
+
+after cloning the project locally
+npm install +  npm run dev
+
+npx create-next-app@latest web-app --typescript --tailwind --eslint
+
+npx shadcn@latest add form input button card label
+
+ npm install react-hook-form @hookform/resolvers zod
+
+ npm run dev
+
+ + npx shadcn@latest add sidebar
+ + npx shadcn@latest add field
+ + npx shadcn@latest add badge
+ + npx shadcn@latest add radio-group label
