@@ -158,9 +158,8 @@ export default function UserDetailPage() {
 
     // 3. New Submit Handler for Roles
     async function onSubmitUpdateRole(values: z.infer<typeof roleSchema>) {
-        console.log("onSubmitUpdateRole::: ", values);
         try {
-            await api.post(`/user/promoteUserToAdmin/${user?.email}`, values.roles);
+            await api.post(`/user/updateRoles/${user?.email}`, values.roles);
             toast.success("Success", {
                 description: "Roles updated",
             });
