@@ -22,6 +22,19 @@ import {UserResponseDto} from "@/types/types";
 import { toast } from "sonner";
 import {Checkbox} from "@/components/ui/checkbox";
 
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+    AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+
+
 export default function UserDetailPage() {
     const router = useRouter();
     const params = useParams()
@@ -162,10 +175,21 @@ export default function UserDetailPage() {
         }
     }
 
+    async function deleteUser() {
+        try {
+            await api.delete(`/user/delete/${user?.email}`);
+            toast.success("User deleted successfully");
+            router.push("/users"); // Redirect back to the list
+        } catch (error) {
+            toast.error("Failed to delete user");
+        }
+    }
+
     return (
         /* 1. Entire Page Filling: w-full and p-4/p-8 */
         <div className="w-full min-h-screen p-4 md:p-8 lg:p-12 bg-slate-50">
 
+            {/* 1. First Form: Role Management */}
             <FieldSet className="bg-white p-6 pt-18 rounded-xl shadow-sm border relative">
                 <FieldLegend className="absolute top-8 left-6 text-xl font-semibold">User Information</FieldLegend>
                 <FieldDescription>Update account details for user ID: {user?.fullName}</FieldDescription>
@@ -251,7 +275,7 @@ export default function UserDetailPage() {
                 </Form>
             </FieldSet>
 
-            {/* 4. Second Form: Role Management */}
+            {/* 3. Second Form: Role Management */}
             <FieldSet className="bg-white p-6 pt-18 rounded-xl shadow-sm border relative">
                 <FieldLegend className="absolute top-8 left-6 text-xl font-semibold">Permissions</FieldLegend>
                 <FieldDescription>Change the security authorities for: {user?.fullName}</FieldDescription>
@@ -316,6 +340,43 @@ export default function UserDetailPage() {
                     </form>
                 </Form>
             </FieldSet>
+
+            {/* 4. Second Form: DELETE SECTION - Admin Only */}
+            {isLoggedInAdmin && !isSelf && (
+                <FieldSet className="bg-red-50 p-6 pt-18 rounded-xl border border-red-200 relative">
+                    <FieldLegend className="absolute top-8 left-6 text-red-700 font-semibold">Danger Zone</FieldLegend>
+                    <div className="flex items-center justify-between mt-4">
+                        <p className="text-sm text-red-600">
+                            Once you delete this user, there is no going back. Please be certain.
+                        </p>
+
+                        <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                                <Button variant="destructive">Delete User</Button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent>
+                                <AlertDialogHeader>
+                                    <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                                    <AlertDialogDescription>
+                                        This action cannot be undone. This will permanently delete the
+                                        account for <strong>{user?.userName}</strong> and remove their data
+                                        from our servers.
+                                    </AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <AlertDialogFooter>
+                                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                    <AlertDialogAction
+                                        onClick={deleteUser}
+                                        className="bg-red-600 hover:bg-red-700"
+                                    >
+                                        Continue
+                                    </AlertDialogAction>
+                                </AlertDialogFooter>
+                            </AlertDialogContent>
+                        </AlertDialog>
+                    </div>
+                </FieldSet>
+            )}
         </div>
     );
 }
