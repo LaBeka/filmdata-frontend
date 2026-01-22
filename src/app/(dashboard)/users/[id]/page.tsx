@@ -33,7 +33,7 @@ import {
     AlertDialogTitle,
     AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-
+import { CircleAlertIcon } from "lucide-react";
 
 export default function UserDetailPage() {
     const router = useRouter();
@@ -176,12 +176,19 @@ export default function UserDetailPage() {
     }
 
     async function deleteUser() {
+        console.log("hiiit")
         try {
-            await api.delete(`/user/delete/${user?.email}`);
-            toast.success("User deleted successfully");
+            await api.delete(`/user/${user?.email}`);
+            toast.success(`User with email: '${user?.email}' deleted successfully`);
             router.push("/users"); // Redirect back to the list
-        } catch (error) {
-            toast.error("Failed to delete user");
+        } catch (err: unknown) {
+            const error = err as AxiosError<{ message: string, status: number }>;
+            const status = error.response?.data?.status;
+            const message = error.response?.data?.message || "Something went wrong";
+            console.error("Access Denied with message: ", message, " and status: ", status);
+            toast.error("Access Denied", {
+                description: message, // This puts your Spring Boot message here
+            });
         }
     }
 
@@ -352,24 +359,30 @@ export default function UserDetailPage() {
 
                         <AlertDialog>
                             <AlertDialogTrigger asChild>
-                                <Button variant="destructive">Delete User</Button>
+                                <Button variant="destructive" className="w-full sm:w-auto">
+                                    Delete User
+                                </Button>
                             </AlertDialogTrigger>
                             <AlertDialogContent>
                                 <AlertDialogHeader>
+                                    {/* Visual icon for the warning */}
+                                    <div className="flex justify-center pb-4">
+                                        <CircleAlertIcon className="h-12 w-12 text-red-500" />
+                                    </div>
                                     <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
                                     <AlertDialogDescription>
                                         This action cannot be undone. This will permanently delete the
-                                        account for <strong>{user?.userName}</strong> and remove their data
-                                        from our servers.
+                                        account for <strong>{user?.userName}</strong> and all associated data.
                                     </AlertDialogDescription>
                                 </AlertDialogHeader>
                                 <AlertDialogFooter>
                                     <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                    {/* Action button triggers the delete function */}
                                     <AlertDialogAction
                                         onClick={deleteUser}
-                                        className="bg-red-600 hover:bg-red-700"
+                                        className="bg-red-600 hover:bg-red-700 focus:ring-red-600"
                                     >
-                                        Continue
+                                        Delete Account
                                     </AlertDialogAction>
                                 </AlertDialogFooter>
                             </AlertDialogContent>
