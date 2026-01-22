@@ -29,6 +29,7 @@ export interface FilmReviewResponseDto {
 export interface ReviewResponseDto {
     index : number;
     userName : string;
+    email : string;
     text : string;
     date : string;
     score : number;
