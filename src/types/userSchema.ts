@@ -17,3 +17,7 @@ export const userUpdateSchema = userSchema.omit({
 });
 
 export type UserUpdateRequestDto = z.infer<typeof userUpdateSchema>;
+
+export const roleSchema = z.object({
+    roles: z.array(z.string()).min(1, "Please select a role"),
+});

@@ -10,8 +10,10 @@ import { toast } from "sonner";
 export default function UsersPage() {
     const [users, setUsers] = useState<UserResponseDto[]>([]);
     const router = useRouter();
+    const [mounted, setMounted] = useState(false);
 
     useEffect(() => {
+        setMounted(true);
         const jwtEmail = localStorage.getItem("email")?.replace(/"/g, "");
         const rawRoles = localStorage.getItem("roles");
         const roles: string[] = rawRoles ? JSON.parse(rawRoles) : [];
@@ -47,13 +49,15 @@ export default function UsersPage() {
         }
     }, [router])
 
+    if (!mounted) return null;
+
     const rawRoles = typeof window !== "undefined" ? localStorage.getItem("roles") : null;
     const isAdmin = rawRoles ? JSON.parse(rawRoles).includes("ADMIN") : false;
 
     if (!isAdmin) {
         return (
-            <div className="p-8 flex items-center justify-center">
-                <p className="text-gray-500">Redirecting to your profile...</p>
+            <div className="p-8">
+                <h1 className="text-2xl font-bold mb-4">Redirecting to your profile...</h1>
             </div>
         );
     }

@@ -3,7 +3,7 @@
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {z} from "zod";
-import { userUpdateSchema, UserUpdateRequestDto } from "@/types/userSchema";
+import { userUpdateSchema, UserUpdateRequestDto, roleSchema } from "@/types/userSchema";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react"
 import api from "@/lib/api";
@@ -18,21 +18,17 @@ import { AxiosError } from "axios";
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
-import {RadioGroup, RadioGroupItem} from "@/components/ui/radio-group";
 import {UserResponseDto} from "@/types/types";
 import { toast } from "sonner";
-
-const roleSchema = z.object({
-    role: z.string().min(1, "Please select a role"),
-});
+import {Checkbox} from "@/components/ui/checkbox";
 
 export default function UserDetailPage() {
     const router = useRouter();
     const params = useParams()
     const id = params.id // Captures the '1' from /users/1
     const [user, setUser] = useState<UserResponseDto>();
-    const [userCanUpdate, setUserCanUpdate] = useState<boolean>(false);
-    const [adminCanUpdate, setAdminCanUpdate] = useState<boolean>(false);
+    const [isLoggedInAdmin, setIsLoggedInAdmin] = useState(false);
+    const [isSelf, setIsSelf] = useState(false);
 
     const form = useForm({
         resolver: zodResolver(userUpdateSchema),
@@ -44,18 +40,21 @@ export default function UserDetailPage() {
             age: 0
         }
     });
-    // 2. Initialize the Role Form
-    const roleForm = useForm<z.infer<typeof roleSchema>>({
-        resolver: zodResolver(roleSchema),
-        defaultValues: {
-            role: user?.roles[0] || "USER",
-        },
-    });
 
     useEffect(() => {
+        // 1. Get logged-in info from localStorage
+        const loggedInEmail = localStorage.getItem("email")?.replace(/"/g, "");
+        const rawRoles = localStorage.getItem("roles");
+        const roles: string[] = rawRoles ? JSON.parse(rawRoles) : [];
+
+        const adminStatus = roles.includes("ADMIN") || roles.includes("ROLE_ADMIN");
+        // eslint-disable-next-line react-hooks/set-state-in-effect
+        setIsLoggedInAdmin(adminStatus);
+
         api.get(`/user/get/id/${id}`)
             .then(res => {
                 setUser(res.data);
+                setIsSelf(res.data.email === loggedInEmail);
                 form.reset({
                     userName: res.data.userName,
                     fullName: res.data.fullName,
@@ -73,7 +72,22 @@ export default function UserDetailPage() {
                     description: message, // This puts your Spring Boot message here
                 });
             })
-    }, [id])
+    }, [id]);
+
+    // 2. Initialize the Role Form
+    const roleForm = useForm<z.infer<typeof roleSchema>>({
+        resolver: zodResolver(roleSchema),
+        defaultValues: {
+            roles: [],
+        },
+    });
+    useEffect(() => {
+        if (user) {
+            roleForm.reset({
+                roles: user.roles
+            });
+        }
+    }, [user, roleForm]);
 
     console.log(user?.roles)
     useEffect(() => {
@@ -86,6 +100,14 @@ export default function UserDetailPage() {
             password: ""
         });
     }, [user, form]);
+
+    // Permissions Logic
+    // A user can only update info if it is THEIR OWN profile.
+    const canUpdateInfo = isSelf;
+    // console.log("canUpdateInfo::: ", canUpdateInfo);
+    // Only an Admin can see/change the Permissions section.
+    const canUpdateRoles = isLoggedInAdmin;
+    // console.log("canUpdateRoles::: ", canUpdateRoles);
 
 
     async function onSubmit(values: UserUpdateRequestDto) {
@@ -123,26 +145,20 @@ export default function UserDetailPage() {
 
     // 3. New Submit Handler for Roles
     async function onSubmitUpdateRole(values: z.infer<typeof roleSchema>) {
-
+        console.log("onSubmitUpdateRole::: ", values);
         try {
-            // Endpoint: /api/user/updateUserToAdmin/{email}
-            // Assuming you want to pass the role as a plain string or body
-            await api.post(`/user/updateUserToAdmin/${user?.email}`, values.role);
-            alert("Role updated successfully!");
-        } catch (error) {
-            // 2. Check if this is an Axios Error
-            const axiosError = error as AxiosError<{ message: string, status: number }>;
-
-            if (axiosError.response && axiosError.response.data) {
-                // Now TypeScript knows 'data' has 'message' and 'status'
-                console.error("Backend Status:", axiosError.response.data.status);
-                console.error("Backend Message:", axiosError.response.data.message);
-
-                alert(`Error: ${axiosError.response.data.message}`);
-            } else if (error instanceof Error) {
-                // 3. Fallback for generic JS errors (like network failure)
-                console.error("Network/Generic Error:", error.message);
-            }
+            await api.post(`/user/promoteUserToAdmin/${user?.email}`, values.roles);
+            toast.error("Success", {
+                description: "Roles updated",
+            });
+        } catch (err: unknown) {
+            const error = err as AxiosError<{ message: string, status: number }>;
+            const status = error.response?.data?.status;
+            const message = error.response?.data?.message || "Something went wrong";
+            console.error("Access Denied with message: ", message, " and status: ", status);
+            toast.error("Access Denied", {
+                description: message, // This puts your Spring Boot message here
+            });
         }
     }
 
@@ -166,7 +182,7 @@ export default function UserDetailPage() {
                                     <FieldLabel>Username</FieldLabel>
                                     <FormControl>
                                         {/* 4. Shrink on small screen: text-sm and h-9 */}
-                                        <Input className="text-sm sm:text-base h-9 sm:h-10" {...field} />
+                                        <Input disabled={!canUpdateInfo} className="text-sm sm:text-base h-9 sm:h-10" {...field} />
                                     </FormControl>
                                     <FormMessage />
                                 </FormItem>
@@ -177,7 +193,7 @@ export default function UserDetailPage() {
                                 <FormItem>
                                     <FieldLabel>Full Name</FieldLabel>
                                     <FormControl>
-                                        <Input className="text-sm sm:text-base h-9 sm:h-10" {...field} />
+                                        <Input disabled={!canUpdateInfo} className="text-sm sm:text-base h-9 sm:h-10" {...field} />
                                     </FormControl>
                                     <FormMessage />
                                 </FormItem>
@@ -199,7 +215,7 @@ export default function UserDetailPage() {
                                 <FormItem>
                                     <FieldLabel>Age</FieldLabel>
                                     <FormControl>
-                                        <Input className="text-sm sm:text-base h-9 sm:h-10"
+                                        <Input disabled={!canUpdateInfo} className="text-sm sm:text-base h-9 sm:h-10"
                                             type="number"
                                             {...field}
                                             onChange={(e) => field.onChange(e.target.valueAsNumber)} // Forces it to a number
@@ -212,23 +228,25 @@ export default function UserDetailPage() {
                         </div>
 
                         {/* Button section */}
-                        <div className="flex flex-col sm:flex-row sm:justify-end gap-3 mt-10 border-t pt-6">
-                            <Button
-                                type="button"
-                                variant="outline"
-                                onClick={() => router.back()}
-                                className="w-full sm:w-32 h-9 sm:h-10 text-xs sm:text-sm"
-                            >
-                                Cancel
-                            </Button>
+                        {canUpdateInfo && (
+                            <div className="flex flex-col sm:flex-row sm:justify-end gap-3 mt-10 border-t pt-6">
+                                <Button
+                                    type="button"
+                                    variant="outline"
+                                    onClick={() => router.back()}
+                                    className="w-full sm:w-32 h-9 sm:h-10 text-xs sm:text-sm"
+                                >
+                                    Cancel
+                                </Button>
 
-                            <Button
-                                type="submit"
-                                className="w-full sm:w-32 h-9 sm:h-10 text-xs sm:text-sm"
-                            >
-                                Submit
-                            </Button>
-                        </div>
+                                <Button
+                                    type="submit"
+                                    className="w-full sm:w-32 h-9 sm:h-10 text-xs sm:text-sm"
+                                >
+                                    Submit
+                                </Button>
+                            </div>
+                        )}
                     </form>
                 </Form>
             </FieldSet>
@@ -240,39 +258,61 @@ export default function UserDetailPage() {
 
                 <Form {...roleForm}>
                     <form onSubmit={roleForm.handleSubmit(onSubmitUpdateRole)} className="mt-8 space-y-6">
-                        <FormField
-                            control={roleForm.control}
-                            name="role"
-                            render={({ field }) => (
-                                <FormItem>
-                                    <FieldLabel>System Role</FieldLabel>
-                                    <FormControl>
-                                        {/* Integration of Radio Group with Form */}
-                                        <RadioGroup
-                                            onValueChange={field.onChange}
-                                            defaultValue={field.value}
-                                            className="grid grid-cols-1 md:grid-cols-3 gap-4"
-                                        >
-                                            <div className="flex items-center gap-3 space-x-2 border p-4 rounded-lg hover:bg-slate-50">
-                                                <RadioGroupItem value="USER" id="r-user" />
-                                                <FieldLabel htmlFor="r-user" className="cursor-pointer font-medium">Standard User</FieldLabel>
-                                            </div>
-                                            <div className="flex items-center gap-3 space-x-2 border p-4 rounded-lg hover:bg-slate-50 border-blue-200">
-                                                <RadioGroupItem value="ADMIN" id="r-admin" />
-                                                <FieldLabel htmlFor="r-admin" className="cursor-pointer font-medium text-blue-700">Administrator</FieldLabel>
-                                            </div>
-                                        </RadioGroup>
-                                    </FormControl>
-                                    <FormMessage />
-                                </FormItem>
-                            )}
-                        />
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            {/* USER ROLE CHECKBOX */}
+                            <FormField
+                                control={roleForm.control}
+                                name="roles"
+                                render={({ field }) => (
+                                    <FormItem className="flex items-center space-x-3 space-y-0 border p-4 rounded-lg">
+                                        <FormControl>
+                                            <Checkbox
+                                                checked={field.value?.includes("USER")}
+                                                disabled={!isLoggedInAdmin}
+                                                onCheckedChange={(checked) => {
+                                                    const currentRoles = Array.isArray(field.value) ? field.value : [];
+                                                    return checked
+                                                        ? field.onChange([...currentRoles, "USER"])
+                                                        : field.onChange(currentRoles.filter((value: string) => value !== "USER"))
+                                                }}
+                                            />
+                                        </FormControl>
+                                        <FieldLabel className="font-medium cursor-pointer">User</FieldLabel>
+                                    </FormItem>
+                                )}
+                            />
 
-                        <div className="flex justify-end mt-6">
-                            <Button type="submit" className="w-full sm:w-auto">
-                                Save Permissions
-                            </Button>
+                            {/* ADMIN ROLE CHECKBOX */}
+                            <FormField
+                                control={roleForm.control}
+                                name="roles"
+                                render={({ field }) => (
+                                    <FormItem className="flex items-center space-x-3 space-y-0 border p-4 rounded-lg border-blue-200">
+                                        <FormControl>
+                                            <Checkbox
+                                                checked={field.value?.includes("ADMIN")}
+                                                disabled={!isLoggedInAdmin}
+                                                onCheckedChange={(checked) => {
+                                                    const currentRoles = Array.isArray(field.value) ? field.value : [];
+                                                    return checked
+                                                        ? field.onChange([...currentRoles, "ADMIN"])
+                                                        : field.onChange(currentRoles.filter((value) => value !== "ADMIN"))
+                                                }}
+                                            />
+                                        </FormControl>
+                                        <FieldLabel className="font-medium text-blue-700 cursor-pointer">Administrator</FieldLabel>
+                                    </FormItem>
+                                )}
+                            />
                         </div>
+
+                        {isLoggedInAdmin && (
+                            <div className="flex justify-end mt-6">
+                                <Button type="submit" className="w-full sm:w-auto">
+                                    Save Permissions
+                                </Button>
+                            </div>
+                        )}
                     </form>
                 </Form>
             </FieldSet>
