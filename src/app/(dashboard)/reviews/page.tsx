@@ -6,6 +6,7 @@ import { FilmReviewResponseDto } from "@/types/types"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
 
 function strCmp(a, b) {
     if (a.toString() < b.toString()) return -1;
@@ -45,11 +46,19 @@ function setDeleteStatus(review){
 function deleteReview(index, roles){
     if(JSON.stringify(localStorage.getItem("roles")).includes("ADMIN")){
             api.delete(`/review/admin/deleteReview/${index}`)
+                .then((response) => {
+                    toast.success("Success", {
+                        description: "Deleted review",
+                    });
+                })
                 .catch(err => {
                     console.log(err.response?.status);
-                    const status = err.response?.status;
-                    const message = err.response?.message;
+                    const status = err.response?.data?.status;
+                    const message = err.response?.data?.message;
                     console.error("Access Denied with message: ", message, " and status: ", status);
+                    toast.error("Failed operation", {
+                        description: message, // This puts your Spring Boot message here
+                    });
                 });
             }
         else{
@@ -59,6 +68,9 @@ function deleteReview(index, roles){
                                 const status = err.response?.status;
                                 const message = err.response?.message;
                                 console.error("Access Denied with message: ", message, " and status: ", status);
+                                toast.error("Failed operation", {
+                                    description: message, // This puts your Spring Boot message here
+                                });
                             });
         }
 
@@ -70,7 +82,9 @@ function deleteReview(index, roles){
 }
 
 function createReviewButton(){
-    alert("Clicked");
+    toast.success("Success", {
+        description: "Button create clicked",
+    });
 }
 
 export default function ReviewsPage() {
@@ -83,10 +97,13 @@ export default function ReviewsPage() {
             .then(res => reviews(res.data))
             // .then(res => console.log(res.))
             .catch(err => {
-                console.log(err.response?.status);
-                const status = err.response?.status;
-                const message = err.response?.message;
+                console.log(err.response?.data?.status);
+                const status = err.response?.data?.status;
+                const message = err.response?.data?.message;
                 console.error("Access Denied with message: ", message, " and status: ", status);
+                toast.error("Failed operation", {
+                    description: message,
+                });
             })
 
     }, [])

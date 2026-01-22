@@ -81,7 +81,7 @@ export default function UserDetailPage() {
                 const status = err.response?.data?.status;
                 const message = err.response?.data?.message || "Something went wrong";
                 console.error("Access Denied with message: ", message, " and status: ", status);
-                toast.error("Access Denied", {
+                toast.error("Failed Operation", {
                     description: message, // This puts your Spring Boot message here
                 });
             })
@@ -141,7 +141,7 @@ export default function UserDetailPage() {
             const status = error.response?.data?.status;
             const message = error.response?.data?.message || "Something went wrong";
             console.error("Access Denied with message: ", message, " and status: ", status);
-            toast.error("Access Denied", {
+            toast.error("Failed operation", {
                 description: message, // This puts your Spring Boot message here
             });
             if (user) {
@@ -161,7 +161,7 @@ export default function UserDetailPage() {
         console.log("onSubmitUpdateRole::: ", values);
         try {
             await api.post(`/user/promoteUserToAdmin/${user?.email}`, values.roles);
-            toast.error("Success", {
+            toast.success("Success", {
                 description: "Roles updated",
             });
         } catch (err: unknown) {
@@ -169,7 +169,7 @@ export default function UserDetailPage() {
             const status = error.response?.data?.status;
             const message = error.response?.data?.message || "Something went wrong";
             console.error("Access Denied with message: ", message, " and status: ", status);
-            toast.error("Access Denied", {
+            toast.error("Failed operation", {
                 description: message, // This puts your Spring Boot message here
             });
         }
@@ -186,7 +186,7 @@ export default function UserDetailPage() {
             const status = error.response?.data?.status;
             const message = error.response?.data?.message || "Something went wrong";
             console.error("Access Denied with message: ", message, " and status: ", status);
-            toast.error("Access Denied", {
+            toast.error("Failed operation", {
                 description: message, // This puts your Spring Boot message here
             });
         }
