@@ -3,7 +3,7 @@
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {z} from "zod";
-import { userUpdateSchema, UserUpdateRequestDto, UserResponseDto } from "@/types/userSchema";
+import { userUpdateSchema, UserUpdateRequestDto } from "@/types/userSchema";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react"
 import api from "@/lib/api";
@@ -13,20 +13,15 @@ import {
     FieldLabel,
     FieldLegend,
     FieldSet,
-} from "@/components/ui/field"
-
+} from "@/components/ui/field";
+import { AxiosError } from "axios";
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
-import {AxiosError} from "axios";
 import {RadioGroup, RadioGroupItem} from "@/components/ui/radio-group";
+import {UserResponseDto} from "@/types/types";
+import { toast } from "sonner";
 
-
-interface BackendErrorResponse {
-    status: number;
-    message: string;
-}
-// 1. Define the Role Schema
 const roleSchema = z.object({
     role: z.string().min(1, "Please select a role"),
 });
@@ -35,7 +30,9 @@ export default function UserDetailPage() {
     const router = useRouter();
     const params = useParams()
     const id = params.id // Captures the '1' from /users/1
-    const [user, setUser] = useState<UserResponseDto>()
+    const [user, setUser] = useState<UserResponseDto>();
+    const [userCanUpdate, setUserCanUpdate] = useState<boolean>(false);
+    const [adminCanUpdate, setAdminCanUpdate] = useState<boolean>(false);
 
     const form = useForm({
         resolver: zodResolver(userUpdateSchema),
@@ -68,18 +65,13 @@ export default function UserDetailPage() {
                 });
                 console.log("res.data.age: ", res.data.age);
             })
-            .catch(error => {
-                const axiosError = error as AxiosError<BackendErrorResponse>;
-                if (axiosError.response && axiosError.response.data) {
-                    // Now TypeScript knows 'data' has 'message' and 'status'
-                    console.error("Backend Status:", axiosError.response.data.status);
-                    console.error("Backend Message:", axiosError.response.data.message);
-
-                    alert(`Error: ${axiosError.response.data.message}`);
-                } else if (error instanceof Error) {
-                    // 3. Fallback for generic JS errors (like network failure)
-                    console.error("Network/Generic Error:", error.message);
-                }
+            .catch(err => {
+                const status = err.response?.data?.status;
+                const message = err.response?.data?.message || "Something went wrong";
+                console.error("Access Denied with message: ", message, " and status: ", status);
+                toast.error("Access Denied", {
+                    description: message, // This puts your Spring Boot message here
+                });
             })
     }, [id])
 
@@ -97,32 +89,34 @@ export default function UserDetailPage() {
 
 
     async function onSubmit(values: UserUpdateRequestDto) {
-        console.log("onSubmit:::: ", values)
         const userEmail = user?.email;
         const updatedValues = {
             ...values,
             email: userEmail
         };
+
         try {
-            // Calls your @PostMapping("/api/user/create")
             await api.put(`/user/update/${userEmail}`, updatedValues);
             router.refresh();
-
-            // 2. Optional: Show a success message instead of redirecting
-            //alert("Profile updated successfully!");
-        } catch (error: unknown) {
-            // 2. Check if this is an Axios Error
-            const axiosError = error as AxiosError<BackendErrorResponse>;
-
-            if (axiosError.response && axiosError.response.data) {
-                // Now TypeScript knows 'data' has 'message' and 'status'
-                console.error("Backend Status:", axiosError.response.data.status);
-                console.error("Backend Message:", axiosError.response.data.message);
-
-                alert(`Error: ${axiosError.response.data.message}`);
-            } else if (error instanceof Error) {
-                // 3. Fallback for generic JS errors (like network failure)
-                console.error("Network/Generic Error:", error.message);
+            toast.success("Success", {
+                description: "User data updated",
+            });
+        } catch (err: unknown) {
+            const error = err as AxiosError<{ message: string, status: number }>;
+            const status = error.response?.data?.status;
+            const message = error.response?.data?.message || "Something went wrong";
+            console.error("Access Denied with message: ", message, " and status: ", status);
+            toast.error("Access Denied", {
+                description: message, // This puts your Spring Boot message here
+            });
+            if (user) {
+                form.reset({
+                    userName: user.userName, // Using the state variable 'user'
+                    fullName: user.fullName,
+                    email: user.email,
+                    age: user.age,
+                    password: ""
+                });
             }
         }
     }
@@ -137,7 +131,7 @@ export default function UserDetailPage() {
             alert("Role updated successfully!");
         } catch (error) {
             // 2. Check if this is an Axios Error
-            const axiosError = error as AxiosError<BackendErrorResponse>;
+            const axiosError = error as AxiosError<{ message: string, status: number }>;
 
             if (axiosError.response && axiosError.response.data) {
                 // Now TypeScript knows 'data' has 'message' and 'status'
@@ -194,7 +188,7 @@ export default function UserDetailPage() {
                                 <FormItem>
                                     <FieldLabel>Email</FieldLabel>
                                     <FormControl>
-                                        <Input type="email" className="text-sm sm:text-base h-9 sm:h-10" {...field} />
+                                        <Input disabled type="email" className="text-sm sm:text-base h-9 sm:h-10" {...field} />
                                     </FormControl>
                                     <FormMessage />
                                 </FormItem>

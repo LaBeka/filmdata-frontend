@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import api from "@/lib/api";
 import { useRouter } from "next/navigation";
+import {toast} from "sonner";
 
 export default function RegisterPage() {
     const router = useRouter();
@@ -33,20 +34,16 @@ export default function RegisterPage() {
             // Calls your @PostMapping("/api/user/create")
             await api.post("/user/create", values);
             router.push("/login"); // Redirect to login after success
-        } catch (error: unknown) {
-            // 2. Check if this is an Axios Error
-            const axiosError = error as AxiosError<BackendErrorResponse>;
+        } catch (err: unknown) {
+            const error = err as AxiosError<BackendErrorResponse>;
 
-            if (axiosError.response && axiosError.response.data) {
-                // Now TypeScript knows 'data' has 'message' and 'status'
-                console.error("Backend Status:", axiosError.response.data.status);
-                console.error("Backend Message:", axiosError.response.data.message);
+            const status = error.response?.data?.status;
+            const message = error.response?.data?.message || "Something went wrong";
+            console.error("Access Denied with message: ", message, " and status: ", status);
+            toast.error("Access Denied", {
+                description: message,
+            });
 
-                alert(`Error: ${axiosError.response.data.message}`);
-            } else if (error instanceof Error) {
-                // 3. Fallback for generic JS errors (like network failure)
-                console.error("Network/Generic Error:", error.message);
-            }
         }
     }
 
