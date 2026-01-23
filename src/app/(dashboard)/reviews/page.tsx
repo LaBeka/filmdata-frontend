@@ -54,7 +54,7 @@ function deleteReview(index, roles, router){
                     const message = err.response?.message;
                     console.error("Access Denied with message: ", message, " and status: ", status);
                 });
-            router.back();
+            window.location.reload();
             }
         else{
             api.delete(`/review/user/deleteReview/${index}`)
@@ -64,7 +64,7 @@ function deleteReview(index, roles, router){
                                 const message = err.response?.message;
                                 console.error("Access Denied with message: ", message, " and status: ", status);
                             });
-            router.back();
+            window.location.reload();
         }
 
       return (
