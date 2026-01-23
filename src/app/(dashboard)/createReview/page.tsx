@@ -3,12 +3,12 @@
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {z} from "zod";
-import { ReviewResponseDto } from "@/types/types";
-import { reviewSchema, reviewUpdateSchema } from "@/types/reviewSchema";
-import type { UpdateReviewRequestDto } from "@/types/reviewSchema";
+import { createReviewSchema, createReviewUpdateSchema } from "@/types/createReviewSchema";
+import type { CreateReviewRequestDto } from "@/types/createReviewSchema";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react"
 import api from "@/lib/api";
+import { useSearchParams } from "next/navigation";
 import { Form, FormField, FormItem, FormControl, FormMessage } from "@/components/ui/form";
 import {
     FieldDescription,
@@ -30,51 +30,26 @@ interface BackendErrorResponse {
 
 export default function UpdateReviewPage() {
     const router = useRouter()
-    const params = useParams()
-    const id = params.id
-    const [review, setReview] = useState<ReviewResponseDto>()
+    const params = useSearchParams()
+    const id = params.get("filmId")
 
     const form = useForm({
-            resolver: zodResolver(reviewUpdateSchema),
+            resolver: zodResolver(createReviewUpdateSchema),
             defaultValues: {
                 score: 0,
                 text: "",
             }
-    })
+    });
 
-    useEffect(() => {
-            api.get(`review/user/getSpecificReview/${id}`)
-                .then(res => {
-                    setReview(res.data);
-                    form.reset({
-                        score : res.data.score,
-                        text : res.data.text
-                    });
-                })
-                .catch(error => {
-                    const axiosError = error as AxiosError<BackendErrorResponse>;
-                    if (axiosError.response && axiosError.response.data) {
-                        // Now TypeScript knows 'data' has 'message' and 'status'
-                        console.error("Backend Status:", axiosError.response.data.status);
-                        console.error("Backend Message:", axiosError.response.data.message);
-
-                        alert(`Error: ${axiosError.response.data.message}`);
-                    } else if (error instanceof Error) {
-                        // 3. Fallback for generic JS errors (like network failure)
-//                        console.error("Network/Generic Error:", error.message);
-                    }
-                })
-        }, [id])
-
-    async function onSubmit(values: reviewUpdateSchema) {
+    async function onSubmit(values: createReviewUpdateSchema) {
             console.log("onSubmit:::: ", values)
             const updatedValues = {
                 ...values,
-                reviewIndex: id
+                filmId: id
             };
             try {
                 // Calls your @PostMapping("/api/user/create")
-                await api.patch(`/review/user/updateReview`, updatedValues);
+                await api.post(`/review/user/createReview`, updatedValues);
                 router.back();
 
                 // 2. Optional: Show a success message instead of redirecting
@@ -101,9 +76,7 @@ export default function UpdateReviewPage() {
                 <div className="w-full min-h-screen p-4 md:p-8 lg:p-12 bg-slate-50">
 
                     <FieldSet className="bg-white p-6 pt-18 rounded-xl shadow-sm border relative">
-                        <FieldLegend className="absolute top-8 left-6 text-xl font-semibold">Current Data</FieldLegend>
-                        <FieldDescription>Update Review: {"Text:       " + review?.text + "     " +
-                            "Score:       " + review?.score}</FieldDescription>
+                        <FieldLegend className="absolute top-8 left-6 text-xl font-semibold">Create Review</FieldLegend>
                         <Form {...form}>
                             <form onSubmit={form.handleSubmit(onSubmit)} className="mt-8">
 
@@ -125,7 +98,7 @@ export default function UpdateReviewPage() {
                                                     <FormMessage />
                                                 </FormItem>
                                             )} />
-                                    {/* text */}
+                                    {/* Text */}
                                         <FormField control={form.control} name="text" render={({ field }) => (
                                             <FormItem>
                                                 <FieldLabel>Text</FieldLabel>
@@ -148,6 +121,7 @@ export default function UpdateReviewPage() {
                                     >
                                         Cancel
                                     </Button>
+
                                     <Button
                                         type="submit"
                                         className="w-full sm:w-32 h-9 sm:h-10 text-xs sm:text-sm"
