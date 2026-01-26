@@ -7,6 +7,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { useSearchParams } from "next/navigation";
 import { useNavigate } from "react-router-dom"
 import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
 
 import { useRouter } from "next/navigation";
 
@@ -48,11 +49,19 @@ function setDeleteStatus(review, router){
 function deleteReview(index, roles, router){
     if(JSON.stringify(localStorage.getItem("roles")).includes("ADMIN")){
             api.delete(`/review/admin/deleteReview/${index}`)
+                .then((response) => {
+                    toast.success("Success", {
+                        description: "Deleted review",
+                    });
+                })
                 .catch(err => {
                     console.log(err.response?.status);
-                    const status = err.response?.status;
-                    const message = err.response?.message;
+                    const status = err.response?.data?.status;
+                    const message = err.response?.data?.message;
                     console.error("Access Denied with message: ", message, " and status: ", status);
+                    toast.error("Failed operation", {
+                        description: message, // This puts your Spring Boot message here
+                    });
                 });
             window.location.reload();
             }
@@ -63,6 +72,9 @@ function deleteReview(index, roles, router){
                                 const status = err.response?.status;
                                 const message = err.response?.message;
                                 console.error("Access Denied with message: ", message, " and status: ", status);
+                                toast.error("Failed operation", {
+                                    description: message, // This puts your Spring Boot message here
+                                });
                             });
             window.location.reload();
         }
@@ -88,10 +100,13 @@ export default function ReviewsPage() {
         api.get(`/review/public/getByFilm/${id}`)
             .then(res => reviews(res.data))
             .catch(err => {
-                console.log(err.response?.status);
-                const status = err.response?.status;
-                const message = err.response?.message;
+                console.log(err.response?.data?.status);
+                const status = err.response?.data?.status;
+                const message = err.response?.data?.message;
                 console.error("Access Denied with message: ", message, " and status: ", status);
+                toast.error("Failed operation", {
+                    description: message,
+                });
             })
 
     }, [])

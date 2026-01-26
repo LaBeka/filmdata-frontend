@@ -29,7 +29,6 @@ export default function Home() {
         localStorage.removeItem("token"); // Removes the JWT
         window.dispatchEvent(new Event("storage")); // Notifies other components like the Sidebar
         setIsLoggedIn(false);
-        // Using window.location forces a fresh state, but router.push works too
         window.location.href = "/";
     }
 
@@ -39,8 +38,8 @@ export default function Home() {
 
             {isLoggedIn ? (
                 <div className="text-center space-y-6">
-                    <h2 className="text-2xl text-green-600 font-semibold">Welcome back!</h2>
-                    <p className="text-gray-600">You are logged in.</p>
+                    <h2 className="text-2xl text-green-600 font-semibold">Welcome to dashboard</h2>
+                    <p className="text-gray-600">Dashboard details coming soon.</p>
                     {/* ADDED LOGOUT BUTTON HERE */}
                     <Button variant="destructive" onClick={handleLogout}>
                         Logout from Session
