@@ -5,8 +5,11 @@ import api from "@/lib/api"
 import { FilmReviewResponseDto } from "@/types/types"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { useSearchParams } from "next/navigation";
+import { useNavigate } from "react-router-dom"
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
+
+import { useRouter } from "next/navigation";
 
 function strCmp(a, b) {
     if (a.toString() < b.toString()) return -1;
@@ -16,7 +19,7 @@ function strCmp(a, b) {
 
 function printUpdateButton(review){
     return(
-        <a href={`/reviews/${review.id}`} className="accent-red-400 underline">Update</a>
+        <a href={`/reviews/${review.index}`} className="accent-red-400 underline">Update</a>
     )
 }
 
@@ -28,22 +31,22 @@ function setUpdateStatus(review){
     }
 }
 
-function printDeleteButton(review, role){
+function printDeleteButton(review, role, router){
     return(
-        <a onClick={() => deleteReview(review.index, role) } className="accent-red-400 underline">Delete</a>
+        <a onClick={() => deleteReview(review.index, role, router) } className="accent-red-400 underline">Delete</a>
     )
 }
 
-function setDeleteStatus(review){
+function setDeleteStatus(review, router){
     const email = localStorage.getItem("email");
     const role = localStorage.getItem("roles");
 
     if(!strCmp(JSON.stringify(review.email), email) ||
     JSON.stringify(role).includes("ADMIN")){
-        return printDeleteButton(review, role); }
+        return printDeleteButton(review, role, router); }
 }
 
-function deleteReview(index, roles){
+function deleteReview(index, roles, router){
     if(JSON.stringify(localStorage.getItem("roles")).includes("ADMIN")){
             api.delete(`/review/admin/deleteReview/${index}`)
                 .then((response) => {
@@ -60,6 +63,7 @@ function deleteReview(index, roles){
                         description: message, // This puts your Spring Boot message here
                     });
                 });
+            window.location.reload();
             }
         else{
             api.delete(`/review/user/deleteReview/${index}`)
@@ -72,6 +76,7 @@ function deleteReview(index, roles){
                                     description: message, // This puts your Spring Boot message here
                                 });
                             });
+            window.location.reload();
         }
 
       return (
@@ -81,21 +86,19 @@ function deleteReview(index, roles){
       );
 }
 
-function createReviewButton(){
-    toast.success("Success", {
-        description: "Button create clicked",
-    });
+function createReviewButton(router, idFilm){
+    router.push(`/createReview?filmId=${idFilm}`)
 }
 
 export default function ReviewsPage() {
     const [filmId, reviews] = useState<FilmReviewResponseDto>()
     const params = useSearchParams()
     const id = params.get("filmId");
+    const router = useRouter()
 
     useEffect(() => {
         api.get(`/review/public/getByFilm/${id}`)
             .then(res => reviews(res.data))
-            // .then(res => console.log(res.))
             .catch(err => {
                 console.log(err.response?.data?.status);
                 const status = err.response?.data?.status;
@@ -115,7 +118,7 @@ export default function ReviewsPage() {
                     <Button
                         type="button"
                         variant="outline"
-                        onClick={() => createReviewButton()}
+                        onClick={() => createReviewButton(router, id)}
                         className="w-full sm:w-32 h-9 sm:h-10 text-xs sm:text-sm"
                         >
                       Create Review
@@ -140,10 +143,21 @@ export default function ReviewsPage() {
                             <TableCell>{review.date}</TableCell>
                             <TableCell>{review.score}</TableCell>
                             <TableCell>{setUpdateStatus(review)}</TableCell>
-                            <TableCell>{setDeleteStatus(review)}</TableCell>
+                            <TableCell>{setDeleteStatus(review, router)}</TableCell>
                         </TableRow>
                         )}
                 </TableBody>
             </Table>
+            <div className="flex flex-col sm:flex-row sm:justify-start gap-3 mt-10 border-t pt-6">
+                <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => router.back()}
+                    className="w-full sm:w-32 h-9 sm:h-10 text-xs sm:text-sm"
+                    >
+                    Back to films
+                </Button>
+
+            </div>
         </div>
 )}
