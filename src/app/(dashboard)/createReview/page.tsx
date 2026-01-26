@@ -41,7 +41,7 @@ export default function UpdateReviewPage() {
             }
     });
 
-    async function onSubmit(values: createReviewUpdateSchema) {
+    async function onSubmit(values: CreateReviewRequestDto) {
             console.log("onSubmit:::: ", values)
             const updatedValues = {
                 ...values,
@@ -62,9 +62,7 @@ export default function UpdateReviewPage() {
                     // Now TypeScript knows 'data' has 'message' and 'status'
                     console.error("Backend Status:", axiosError.response.data.status);
                     console.error("Backend Message:", axiosError.response.data.message);
-
-                    alert(`Error: ${axiosError.response.data.message}`);
-                } else if (error instanceof Error) {
+                } else if (error) {
                     // 3. Fallback for generic JS errors (like network failure)
                     //console.error("Network/Generic Error:", error.message);
                 }

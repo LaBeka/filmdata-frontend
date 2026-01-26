@@ -62,7 +62,7 @@ export default function LoginPage() {
 
             const status = error.response?.data?.status;
             const message = error.response?.data?.message || "Something went wrong";
-            console.error("Access Denied with message: ", message, " and status: ", status);
+            console.log("Access Denied with message: ", message, " and status: ", status);
             toast.error("Access Denied", {
                 description: message,
             });

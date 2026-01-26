@@ -9,6 +9,12 @@ import { useEffect, useState } from "react"
 import api from "@/lib/api";
 import { Form, FormField, FormItem, FormControl, FormMessage } from "@/components/ui/form";
 import {
+    Tooltip,
+    TooltipContent,
+    TooltipProvider,
+    TooltipTrigger,
+} from "@/components/ui/tooltip";
+import {
     FieldDescription,
     FieldLabel,
     FieldLegend,
@@ -34,6 +40,7 @@ import {
     AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { CircleAlertIcon } from "lucide-react";
+import {Label} from "@/components/ui/label";
 
 export default function UserDetailPage() {
     const router = useRouter();
@@ -43,13 +50,12 @@ export default function UserDetailPage() {
     const [isLoggedInAdmin, setIsLoggedInAdmin] = useState(false);
     const [isSelf, setIsSelf] = useState(false);
 
-    const form = useForm({
+    const form = useForm<UserUpdateRequestDto>({
         resolver: zodResolver(userUpdateSchema),
         defaultValues: {
             userName: "",
             fullName: "",
-            email: "",
-            password: "",
+            //email: "",
             age: 0
         }
     });
@@ -69,11 +75,9 @@ export default function UserDetailPage() {
                 setUser(res.data);
                 setIsSelf(res.data.email === loggedInEmail);
                 form.reset({
-                    userName: res.data.userName,
-                    fullName: res.data.fullName,
-                    email: res.data.email,
-                    age: res.data.age,
-                    password: ""
+                    userName: res.data.userName || "",
+                    fullName: res.data.fullName || "",
+                    age: res.data.age || 0
                 });
                 console.log("res.data.age: ", res.data.age);
             })
@@ -85,7 +89,7 @@ export default function UserDetailPage() {
                     description: message, // This puts your Spring Boot message here
                 });
             })
-    }, [id]);
+    }, [form, id]);
 
     // 2. Initialize the Role Form
     const roleForm = useForm<z.infer<typeof roleSchema>>({
@@ -108,9 +112,7 @@ export default function UserDetailPage() {
         form.reset({
             userName: user.userName,
             fullName: user.fullName,
-            email: user.email,
             age: user.age,
-            password: ""
         });
     }, [user, form]);
 
@@ -148,9 +150,7 @@ export default function UserDetailPage() {
                 form.reset({
                     userName: user.userName, // Using the state variable 'user'
                     fullName: user.fullName,
-                    email: user.email,
                     age: user.age,
-                    password: ""
                 });
             }
         }
@@ -230,15 +230,28 @@ export default function UserDetailPage() {
                             )} />
 
                             {/* Email */}
-                            <FormField control={form.control} name="email" render={({ field }) => (
-                                <FormItem>
-                                    <FieldLabel>Email</FieldLabel>
-                                    <FormControl>
-                                        <Input disabled type="email" className="text-sm sm:text-base h-9 sm:h-10" {...field} />
-                                    </FormControl>
-                                    <FormMessage />
-                                </FormItem>
-                            )} />
+                            <div className="space-y-2">
+                                <Label htmlFor="static-email">Email</Label>
+                                <TooltipProvider>
+                                    <Tooltip>
+                                        <TooltipTrigger asChild>
+                                            {/* We wrap the input in a div because disabled elements sometimes don't fire mouse events properly */}
+                                            <div>
+                                                <Input
+                                                    id="static-email"
+                                                    disabled
+                                                    value={user?.email || ""}
+                                                    className="text-sm sm:text-base h-9 sm:h-10 opacity-50"
+                                                />
+                                            </div>
+                                        </TooltipTrigger>
+
+                                        <TooltipContent side="top" align="center" sideOffset={-1}>
+                                            <p>Email cannot be changed</p>
+                                        </TooltipContent>
+                                    </Tooltip>
+                                </TooltipProvider>
+                            </div>
 
                             {/* Age */}
                             <FormField control={form.control} name="age" render={({ field }) => (
@@ -370,8 +383,8 @@ export default function UserDetailPage() {
                                     </div>
                                     <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
                                     <AlertDialogDescription>
-                                        This action cannot be undone. This will permanently delete the
-                                        account for <strong>{user?.userName}</strong> and all associated data.
+                                        This action cannot be undone. This will deactivate the
+                                        account for <strong>{user?.userName?.toUpperCase()}</strong> and all associated data.
                                     </AlertDialogDescription>
                                 </AlertDialogHeader>
                                 <AlertDialogFooter>
@@ -381,7 +394,7 @@ export default function UserDetailPage() {
                                         onClick={deleteUser}
                                         className="bg-red-600 hover:bg-red-700 focus:ring-red-600"
                                     >
-                                        Delete Account
+                                        Deactivate Account
                                     </AlertDialogAction>
                                 </AlertDialogFooter>
                             </AlertDialogContent>

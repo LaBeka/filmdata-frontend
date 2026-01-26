@@ -11,9 +11,10 @@ export const userSchema = z.object({
 export type UserRequestDto = z.infer<typeof userSchema>;
 
 // 2. Schema for Updating a User (Omit email and password)
-export const userUpdateSchema = userSchema.omit({
-    email: true,
-    password: true,
+export const userUpdateSchema = z.object({
+    userName: z.string().min(1, "User name is required"),
+    fullName: z.string().min(1, "Full name is required"),
+    age: z.number().min(1, "Age must be at least 1"),
 });
 
 export type UserUpdateRequestDto = z.infer<typeof userUpdateSchema>;

@@ -39,7 +39,7 @@ export default function RegisterPage() {
 
             const status = error.response?.data?.status;
             const message = error.response?.data?.message || "Something went wrong";
-            console.error("Access Denied with message: ", message, " and status: ", status);
+            console.log("Access Denied with message: ", message, " and status: ", status);
             toast.error("Access Denied", {
                 description: message,
             });
@@ -93,7 +93,7 @@ export default function RegisterPage() {
                     <FormField control={form.control} name="age" render={({ field }) => (
                         <FormItem>
                             <FormLabel>Age</FormLabel>
-                            <FormControl><Input type="number" {...field} /></FormControl>
+                            <FormControl><Input type="number" {...field} onChange={(e) => field.onChange(e.target.valueAsNumber)} /></FormControl>
                             <FormMessage />
                         </FormItem>
                     )} />
