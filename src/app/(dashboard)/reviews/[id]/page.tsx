@@ -2,10 +2,8 @@
 
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import {z} from "zod";
 import { ReviewResponseDto } from "@/types/types";
-import { reviewSchema, reviewUpdateSchema } from "@/types/reviewSchema";
-import type { UpdateReviewRequestDto } from "@/types/reviewSchema";
+import {reviewUpdateSchema, UpdateReviewRequestDto} from "@/types/reviewSchema";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react"
 import api from "@/lib/api";
@@ -21,12 +19,7 @@ import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
 import {AxiosError} from "axios";
-import {RadioGroup, RadioGroupItem} from "@/components/ui/radio-group";
-
-interface BackendErrorResponse {
-    status: number;
-    message: string;
-}
+import {toast} from "sonner";
 
 export default function UpdateReviewPage() {
     const router = useRouter()
@@ -51,22 +44,17 @@ export default function UpdateReviewPage() {
                         text : res.data.text
                     });
                 })
-                .catch(error => {
-                    const axiosError = error as AxiosError<BackendErrorResponse>;
-                    if (axiosError.response && axiosError.response.data) {
-                        // Now TypeScript knows 'data' has 'message' and 'status'
-                        console.error("Backend Status:", axiosError.response.data.status);
-                        console.error("Backend Message:", axiosError.response.data.message);
-
-                        alert(`Error: ${axiosError.response.data.message}`);
-                    } else if (error instanceof Error) {
-                        // 3. Fallback for generic JS errors (like network failure)
-//                        console.error("Network/Generic Error:", error.message);
-                    }
+                .catch(err => {
+                    const status = err.response?.data?.status;
+                    const message = err.response?.data?.message || "Something went wrong";
+                    console.error("Access Denied with message: ", message, " and status: ", status);
+                    toast.error("Failed Operation", {
+                        description: message, // This puts your Spring Boot message here
+                    });
                 })
         }, [id])
 
-    async function onSubmit(values: reviewUpdateSchema) {
+    async function onSubmit(values: UpdateReviewRequestDto) {
             console.log("onSubmit:::: ", values)
             const updatedValues = {
                 ...values,
@@ -75,24 +63,18 @@ export default function UpdateReviewPage() {
             try {
                 // Calls your @PostMapping("/api/user/create")
                 await api.patch(`/review/user/updateReview`, updatedValues);
+                toast.success("Success", {
+                    description: "Review data updated",
+                });
                 router.back();
-
-                // 2. Optional: Show a success message instead of redirecting
-                //alert("Profile updated successfully!");
-            } catch (error: unknown) {
-                // 2. Check if this is an Axios Error
-                const axiosError = error as AxiosError<BackendErrorResponse>;
-
-                if (axiosError.response && axiosError.response.data) {
-                    // Now TypeScript knows 'data' has 'message' and 'status'
-                    console.error("Backend Status:", axiosError.response.data.status);
-                    console.error("Backend Message:", axiosError.response.data.message);
-
-                    alert(`Error: ${axiosError.response.data.message}`);
-                } else if (error instanceof Error) {
-                    // 3. Fallback for generic JS errors (like network failure)
-                    //console.error("Network/Generic Error:", error.message);
-                }
+            } catch (err: unknown) {
+                const error = err as AxiosError<{ message: string, status: number }>;
+                const status = error.response?.data?.status;
+                const message = error.response?.data?.message || "Something went wrong";
+                console.error("Access Denied with message: ", message, " and status: ", status);
+                toast.error("Failed operation", {
+                    description: message, // This puts your Spring Boot message here
+                });
             }
         }
 

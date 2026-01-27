@@ -17,4 +17,4 @@ npx shadcn@latest add form input button card label
  + npx shadcn@latest add radio-group label
  + npx shadcn@latest add sonner
  + npx shadcn@latest add alert-dialog
-
+ + npx shadcn@latest add badge

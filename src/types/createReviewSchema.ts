@@ -6,7 +6,7 @@ export const createReviewSchema = z.object({
     text: z.string().min(1, "empty review not allowed"),
 });
 
-export type CreateReviewRequestDto = z.infer<typeof reviewSchema>;
+export type CreateReviewRequestDto = z.infer<typeof createReviewSchema>;
 
 export const createReviewUpdateSchema = createReviewSchema.omit({
     filmId: true

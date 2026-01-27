@@ -10,16 +10,24 @@ export interface UserResponseDto {
 
 export interface FilmResponseDto {
     id: number;
+    releaseYear: string; // LocalDate translates to "YYYY-MM-DD" string
     title: string;
-    genre: string;
-    casta: string[];
+    genre: Genre[];      // Matches List<Genre>
+    cast: Actor[];       // Matches List<Actor>
     ageRestriction: number;
-    awards: string[];
-    langusges: string[];
-    aspectRatio: number;
-    colorStatus: string;
-    cameraUsed: string;
+    awards: Award[];     // Matches List<Award>
+    languages: Language[]; // Matches List<Language>
+    aspectRatio: number; // double translates to number
+    color: string;
+    camera: Camera;      // Matches your Camera object
 }
+
+// Define the supporting types based on your Java Classes
+export interface Genre { id: number; name: string; }
+export interface Actor { id: number; name: string; age: number;}
+export interface Award { id: number; year: number; name: string; category: string; }
+export interface Language { id: number; name: string; }
+export interface Camera { id: number; manufacturer: string ; model: string;  }
 
 export interface FilmReviewResponseDto {
     filmId : number;

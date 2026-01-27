@@ -6,8 +6,12 @@ export const reviewSchema = z.object({
     text: z.string().min(1, "empty review not allowed"),
 });
 
-export type UpdateReviewRequestDto = z.infer<typeof reviewSchema>;
+// export type UpdateReviewRequestDto = z.infer<typeof reviewSchema>;
 
-export const reviewUpdateSchema = reviewSchema.omit({
-    reviewIndex: true
+export const reviewUpdateSchema = z.object({
+    score: z.number()
+        .min(0, "Score cannot be negative")
+        .max(10, "Score cannot be over 10"),
+    text: z.string().min(1, "empty review not allowed"),
 });
+export type UpdateReviewRequestDto = z.infer<typeof reviewUpdateSchema>;

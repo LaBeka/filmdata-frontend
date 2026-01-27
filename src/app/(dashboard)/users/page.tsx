@@ -27,7 +27,7 @@ export default function UsersPage() {
                 .catch(err => {
                     const status = err.response?.data?.status;
                     const message = err.response?.data?.message || "Something went wrong";
-                    console.error("Access Denied with message: ", message, " and status: ", status);
+                    console.log("Access Denied with message: ", message, " and status: ", status);
                     toast.error("Access Denied", {
                         description: message, // This puts your Spring Boot message here
                     });
