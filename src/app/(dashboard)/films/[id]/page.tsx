@@ -51,7 +51,7 @@ export default function FilmDetailPage() {
                     <CardContent className="space-y-4">
                         <div>
                             <h3 className="font-semibold text-lg">Cast</h3>
-                            <p className="text-muted-foreground">{data.cast.join(", ")}</p>
+                            <p className="text-muted-foreground">{data.cast[0]?.name}</p>
                         </div>
                         <div>
                             <h3 className="font-semibold text-lg">Awards</h3>
@@ -74,7 +74,7 @@ export default function FilmDetailPage() {
                     <CardContent className="space-y-3">
                         <div className="flex justify-between border-b pb-2">
                             <span className="text-sm font-medium">Languages</span>
-                            <span className="text-sm">{data.languages.join(", ")}</span>
+                            <span className="text-sm">{data.languages[0]?.name}</span>
                         </div>
                         <div className="flex justify-between border-b pb-2">
                             <span className="text-sm font-medium">Aspect Ratio</span>
@@ -86,7 +86,7 @@ export default function FilmDetailPage() {
                         </div>
                         <div className="flex justify-between">
                             <span className="text-sm font-medium">Camera</span>
-                            <span className="text-sm">{data.camera.model}</span>
+                            <span className="text-sm">{data.camera.manufacturer}</span>
                         </div>
                     </CardContent>
                 </Card>
