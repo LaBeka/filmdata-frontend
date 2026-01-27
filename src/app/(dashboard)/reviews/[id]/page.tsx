@@ -116,11 +116,14 @@ export default function UpdateReviewPage() {
                                                 <FieldLabel>Score</FieldLabel>
                                                     <FormControl>
                                                         <Input className="text-sm sm:text-base h-9 sm:h-10"
-                                                            type="number"
+                                                            type="text"
+                                                            placeholder="Enter a number from 1-10"
+                                                            pattern="[0-9]|10"
                                                             {...field}
-                                                            onChange={(e) => field.onChange(e.target.valueAsNumber)} // Forces it to a number
+                                                            onSubmit={(e) =>
+                                                            {isNaN(e.target.valueAsNumber) ? 0 : field.onSubmit(e.target.valueAsNumber)}}
                                                             />
-                                                            {/*<Input type="number"  {...field} />*/}
+                                                        {/*<Input type="number"  {...field} />*/}
                                                         </FormControl>
                                                     <FormMessage />
                                                 </FormItem>

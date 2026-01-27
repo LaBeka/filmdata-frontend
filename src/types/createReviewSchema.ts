@@ -2,7 +2,7 @@ import {z} from "zod";
 
 export const createReviewSchema = z.object({
     filmId: z.number().min(0, "filmId must be positive"),
-    score: z.number().min(0, "Score cannot be negative").max(10, "Score cannot be over 10"),
+    score: z.string().min(1, "empty score not allowed"),
     text: z.string().min(1, "empty review not allowed"),
 });
 
