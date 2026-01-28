@@ -73,7 +73,6 @@ export default function UpdateReviewPage() {
                 reviewIndex: id
             };
             try {
-                // Calls your @PostMapping("/api/user/create")
                 await api.patch(`/review/user/updateReview`, updatedValues);
                 router.back();
 
@@ -110,7 +109,7 @@ export default function UpdateReviewPage() {
                                 {/* 2 & 3. Grid Logic: 1 col on mobile/md, 2 cols on lg */}
                                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-8 gap-y-6">
 
-                                    {/* Score */}
+                                       {/* Score */}
                                         <FormField control={form.control} name="score" render={({ field }) => (
                                             <FormItem>
                                                 <FieldLabel>Score</FieldLabel>
@@ -118,7 +117,6 @@ export default function UpdateReviewPage() {
                                                         <Input className="text-sm sm:text-base h-9 sm:h-10"
                                                             type="text"
                                                             placeholder="Enter a number from 1-10"
-                                                            pattern="[0-9]|10"
                                                             {...field}
                                                             onSubmit={(e) =>
                                                             {isNaN(e.target.valueAsNumber) ? 0 : field.onSubmit(e.target.valueAsNumber)}}
@@ -134,7 +132,9 @@ export default function UpdateReviewPage() {
                                                 <FieldLabel>Text</FieldLabel>
                                                     <FormControl>
                                                         {/* 4. Shrink on small screen: text-sm and h-9 */}
-                                                        <Input className="text-sm sm:text-base h-9 sm:h-10" {...field} />
+                                                        <Input className="text-sm sm:text-base h-9 sm:h-10"
+                                                        placeholder = "Enter your review here"
+                                                        {...field} />
                                                     </FormControl>
                                                 <FormMessage />
                                             </FormItem>

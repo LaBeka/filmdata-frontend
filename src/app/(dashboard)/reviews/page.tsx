@@ -33,7 +33,10 @@ function setUpdateStatus(review){
 
 function printDeleteButton(review, role, router){
     return(
-        <a onClick={() => deleteReview(review.index, role, router) } className="accent-red-400 underline">Delete</a>
+        <a href = "javascript:void(0);"
+        onClick={() => deleteReview(review.index, role, router) }
+        className="accent-red-400 underline"
+        >Delete</a>
     )
 }
 
