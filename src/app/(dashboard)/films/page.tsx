@@ -11,7 +11,7 @@ export default function UsersPage() {
     const [films, setFilms] = useState<FilmResponseDto[]>([])
 
     useEffect(() => {
-        api.get("/test/films")
+        api.get("/film/all/")
             .then(res => setFilms(res.data))
             .catch(err => {
                 const status = err.response?.status;
