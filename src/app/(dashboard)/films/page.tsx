@@ -28,7 +28,7 @@ export default function UsersPage() {
                 })
             }
         else {
-            api.get("/api/film/search/"+searchterm)
+            api.get("http://localhost:8080/api/film/search/"+searchterm)
                 .then(res => setFilms(res.data))
                 .catch(err => {
                     const status = err.response?.status;
