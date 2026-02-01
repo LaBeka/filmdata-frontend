@@ -22,6 +22,19 @@ import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
 import {AxiosError} from "axios";
 import {RadioGroup, RadioGroupItem} from "@/components/ui/radio-group";
+import { toast } from "sonner";
+
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+    AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 interface BackendErrorResponse {
     status: number;
@@ -36,7 +49,7 @@ export default function UpdateReviewPage() {
     const form = useForm({
             resolver: zodResolver(createReviewUpdateSchema),
             defaultValues: {
-                score: 0,
+                score: "0",
                 text: "",
             }
     });
@@ -48,26 +61,14 @@ export default function UpdateReviewPage() {
                 filmId: id
             };
             try {
-                // Calls your @PostMapping("/api/user/create")
                 await api.post(`/review/user/createReview`, updatedValues);
                 router.back();
-
-                // 2. Optional: Show a success message instead of redirecting
-                //alert("Profile updated successfully!");
-            } catch (error: unknown) {
-                // 2. Check if this is an Axios Error
-                const axiosError = error as AxiosError<BackendErrorResponse>;
-
-                if (axiosError.response && axiosError.response.data) {
-                    // Now TypeScript knows 'data' has 'message' and 'status'
-                    console.error("Backend Status:", axiosError.response.data.status);
-                    console.error("Backend Message:", axiosError.response.data.message);
-
-                    alert(`Error: ${axiosError.response.data.message}`);
-                } else if (error instanceof Error) {
-                    // 3. Fallback for generic JS errors (like network failure)
-                    //console.error("Network/Generic Error:", error.message);
-                }
+            } catch(err) {
+                   const status = err.response?.data?.status;
+                   const message = err.response?.data?.message || "Something went wrong";
+                   toast.error("Create review failed", {
+                   description: message, // This puts your Spring Boot message here
+               });
             }
         }
 

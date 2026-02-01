@@ -19,7 +19,7 @@ export default function UsersPage() {
         const searchterm = inputRef?.current.value ?? "";
         console.log("search for film:  " + searchterm);
         if(searchterm == ""){
-            api.get("/test/films")
+            api.get("/film/all")
                 .then(res => setFilms(res.data))
                 .catch(err => {
                     const status = err.response?.status;
